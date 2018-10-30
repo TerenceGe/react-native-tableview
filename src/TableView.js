@@ -335,6 +335,21 @@ class TableView extends React.Component {
     event.stopPropagation()
   }
 
+  _onItemNotification(event) {
+    const data = event.nativeEvent
+
+    if (
+      this.sections[data.section] &&
+      this.sections[data.section].items[data.row] &&
+      this.sections[data.section].items[data.row].onItemNotification
+    ) {
+      this.sections[data.section].items[data.row].onItemNotification(data)
+    }
+
+    this.props.onItemNotification(data)
+    event.stopPropagation()
+  }
+
   render() {
     return (
       <View style={[{ flex: 1 }, this.props.style]}>
@@ -359,6 +374,7 @@ class TableView extends React.Component {
           onChange={(...args) => this._onChange(...args)}
           onWillDisplayCell={(...args) => this._onWillDisplayCell(...args)}
           onEndDisplayingCell={(...args) => this._onEndDisplayingCell(...args)}
+          onItemNotification={(...args) => this._onItemNotification(...args)}
         >
           {this.state.children}
         </RNTableView>

@@ -83,6 +83,7 @@
 @property(nonatomic, copy) RCTBubblingEventBlock onEndDisplayingCell;
 @property(nonatomic, copy) RCTBubblingEventBlock onPress;
 @property(nonatomic, copy) RCTBubblingEventBlock onAccessoryPress;
+@property(nonatomic, copy) RCTBubblingEventBlock onItemNotification;
 @property(nonatomic, copy) RCTBubblingEventBlock onChange;
 @property(nonatomic, copy) RCTDirectEventBlock onScroll;
 @property(nonatomic, copy) RCTDirectEventBlock onRefresh;
@@ -90,6 +91,7 @@
 - (void)addRefresh;
 - (void)stopRefreshing;
 - (void)startRefreshing;
+- (void)sendNotification:(NSDictionary *)data;
 - (void)scrollToOffsetX:(CGFloat)x offsetY:(CGFloat)y animated:(BOOL)animated;
 - (void)scrollToIndex:(NSInteger)index section:(NSInteger)section animated:(BOOL)animated;
 

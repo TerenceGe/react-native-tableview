@@ -270,6 +270,10 @@ RCT_NOT_IMPLEMENTED(-initWithCoder:(NSCoder *)aDecoder)
     }
 }
 
+-(void)sendNotification: (NSDictionary *)data {
+    self.onItemNotification(data);
+}
+
 -(void)setHeaderHeight:(float)headerHeight {
     _headerHeight = headerHeight;
 }

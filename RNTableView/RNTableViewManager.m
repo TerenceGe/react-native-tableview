@@ -68,6 +68,7 @@ RCT_EXPORT_VIEW_PROPERTY(onEndDisplayingCell, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onWillDisplayCell, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onPress, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onAccessoryPress, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onItemNotification, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onScroll, RCTDirectEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onRefresh, RCTDirectEventBlock)
@@ -250,9 +251,24 @@ RCT_CUSTOM_VIEW_PROPERTY(footerFontFamily, NSString, RNTableView)
     view.footerFont = [RCTFont updateFont:view.footerFont withFamily:json ?: defaultView.font.familyName];
 }
 
-RCT_EXPORT_METHOD(sendNotification:(NSDictionary *)data)
+// RCT_EXPORT_METHOD(sendNotification:(NSDictionary *)data)
+// {
+//    [self.bridge.eventDispatcher sendInputEventWithName:@"onItemNotification" body:data];
+// }
+
+RCT_EXPORT_METHOD(sendNotification:(nonnull NSNumber *)reactTag
+                  message:(NSDictionary *)data)
 {
-    [self.bridge.eventDispatcher sendInputEventWithName:@"onItemNotification" body:data];
+    [self.bridge.uiManager addUIBlock:
+     ^(__unused RCTUIManager *uiManager, NSDictionary *viewRegistry){
+         RNTableView *tableView = viewRegistry[reactTag];
+         
+         if ([tableView isKindOfClass:[RNTableView class]]) {
+             [tableView sendNotification:data];
+         } else {
+             RCTLogError(@"Cannot sendNotification: %@ (tag #%@) is not RNTableView", tableView, reactTag);
+         }
+     }];
 }
 
 RCT_EXPORT_METHOD(scrollTo:(nonnull NSNumber *)reactTag
