@@ -72,6 +72,7 @@
 @property(nonatomic) BOOL autoFocus;
 @property(nonatomic) BOOL autoFocusAnimate;
 @property(nonatomic) BOOL allowsToggle;
+@property(nonatomic) BOOL switchOn;
 @property(nonatomic) BOOL allowsMultipleSelection;
 @property(nonatomic) BOOL alwaysBounceVertical;
 @property(nonatomic) NSString *reactModuleForCell;
@@ -83,6 +84,7 @@
 @property(nonatomic, copy) RCTBubblingEventBlock onEndDisplayingCell;
 @property(nonatomic, copy) RCTBubblingEventBlock onPress;
 @property(nonatomic, copy) RCTBubblingEventBlock onAccessoryPress;
+@property(nonatomic, copy) RCTBubblingEventBlock onSwitchAccessoryChanged;
 @property(nonatomic, copy) RCTBubblingEventBlock onItemNotification;
 @property(nonatomic, copy) RCTBubblingEventBlock onChange;
 @property(nonatomic, copy) RCTDirectEventBlock onScroll;

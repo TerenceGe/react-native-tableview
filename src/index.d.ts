@@ -235,6 +235,7 @@ interface TableViewProps {
   alwaysBounceVertical?: boolean
   scrollEnabled?: boolean
   allowsToggle?: boolean
+  switchOn?: boolean
   allowsMultipleSelection?: boolean
   sectionIndexTitlesEnabled?: boolean
   showsHorizontalScrollIndicator?: boolean

@@ -288,6 +288,19 @@ class TableView extends React.Component {
     event.stopPropagation()
   }
 
+  _onSwitchAccessoryChanged(event) {
+    const data = event.nativeEvent
+
+    this.props.onSwitchAccessoryChanged(data)
+
+    if (this.sections) {
+      const pressedItem = this.sections[data.accessorySection].items[data.accessoryIndex]
+      pressedItem.onSwitchAccessoryChanged && pressedItem.onSwitchAccessoryChanged(data)
+    }
+
+    event.stopPropagation()
+  }
+
   _onChange(event) {
     const data = event.nativeEvent
 
@@ -371,6 +384,7 @@ class TableView extends React.Component {
           onScroll={(...args) => this._onScroll(...args)}
           onPress={(...args) => this._onPress(...args)}
           onAccessoryPress={(...args) => this._onAccessoryPress(...args)}
+          onSwitchAccessoryChanged={(...args) => this._onSwitchAccessoryChanged(...args)}
           onChange={(...args) => this._onChange(...args)}
           onWillDisplayCell={(...args) => this._onWillDisplayCell(...args)}
           onEndDisplayingCell={(...args) => this._onEndDisplayingCell(...args)}

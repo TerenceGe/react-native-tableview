@@ -32,7 +32,8 @@ RCT_EXPORT_MODULE()
              @"onWillDisplayCell",
              @"onEndDisplayingCell",
              @"onItemNotification",
-             @"onAccessoryPress"
+             @"onAccessoryPress",
+             @'onSwitchAccessoryChanged'
              ];
 }
 
@@ -61,6 +62,7 @@ RCT_EXPORT_VIEW_PROPERTY(footerTextColor, UIColor)
 RCT_EXPORT_VIEW_PROPERTY(separatorColor, UIColor)
 RCT_EXPORT_VIEW_PROPERTY(moveWithinSectionOnly, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(allowsToggle, BOOL)
+RCT_EXPORT_VIEW_PROPERTY(switchOn, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(allowsMultipleSelection, BOOL)
 RCT_EXPORT_VIEW_PROPERTY(alwaysBounceVertical, BOOL)
 
@@ -68,6 +70,7 @@ RCT_EXPORT_VIEW_PROPERTY(onEndDisplayingCell, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onWillDisplayCell, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onPress, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onAccessoryPress, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onSwitchAccessoryChanged, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onItemNotification, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onChange, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onScroll, RCTDirectEventBlock)

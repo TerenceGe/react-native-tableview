@@ -490,7 +490,15 @@ RCT_NOT_IMPLEMENTED(-initWithCoder:(NSCoder *)aDecoder)
     } else if ([item[@"arrow"] intValue]) {
         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     } else if ([item[@"accessoryType"] intValue]) {
-        cell.accessoryType = [item[@"accessoryType"] intValue];
+        if ([item[@"accessoryType"] intValue] == 5) {
+          UISwitch *switchView = [[UISwitch alloc] initWithFrame:CGRectZero];
+          cell.accessoryView = switchView;
+          [switchView setOn:[item[@"switchOn"] intValue] animated:NO];
+          switchView.tag = ((indexPath.section * 10000) + 30000) + (indexPath.item * 10);
+          [switchView addTarget:self action:@selector(switchAccessoryChangedForRowWithIndexPath:) forControlEvents:UIControlEventValueChanged];
+        } else {
+          cell.accessoryType = [item[@"accessoryType"] intValue];
+        }
     } else {
         cell.accessoryType = UITableViewCellAccessoryNone;
     }
@@ -501,6 +509,26 @@ RCT_NOT_IMPLEMENTED(-initWithCoder:(NSCoder *)aDecoder)
         cell.selectionStyle = [RCTConvert int:item[@"selectionStyle"]];
     }
     return cell;
+}
+
+- (void)switchAccessoryChangedForRowWithIndexPath:(id)sender {
+    UISwitch *switchControl = sender;
+    NSInteger tag = switchControl.tag;
+    NSInteger row = ((tag - 30000) % 10000) / 10;
+    NSInteger section = ((tag - (row * 10)) - 30000) / 10000;
+
+    NSMutableDictionary *newValue = [self dataForRow:row section:section];
+    newValue[@"target"] = self.reactTag;
+    newValue[@"accessoryIndex"] = [NSNumber numberWithInteger:row];
+    newValue[@"accessorySection"] = [NSNumber numberWithInteger:section];
+
+    if (switchControl.on) {
+      [newValue setObject:@1 forKey:@"switchOn"];
+    } else {
+      [newValue setObject:@0 forKey:@"switchOn"];
+    }
+
+    self.onSwitchAccessoryChanged(newValue);
 }
 
 -(NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
