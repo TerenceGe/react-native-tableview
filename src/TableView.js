@@ -220,6 +220,7 @@ class TableView extends React.Component {
           footerLabel: section.props.footerLabel,
           footerHeight: section.props.footerHeight,
           headerHeight: section.props.headerHeight,
+          headerButtonText: section.props.headerButtonText,
           items,
           count,
         })

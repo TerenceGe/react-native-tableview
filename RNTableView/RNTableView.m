@@ -312,9 +312,32 @@ RCT_NOT_IMPLEMENTED(-initWithCoder:(NSCoder *)aDecoder)
     }
 
     if (self.headerBackgroundColor) {
-
         header.contentView.backgroundColor = self.headerBackgroundColor;
     }
+
+    if (_sections[section][@"headerButtonText"] && [_sections[section][@"headerButtonText"] isKindOfClass:[NSString class]]) {
+        // Remove old button from re-used header
+        if ([header.subviews.lastObject isKindOfClass:UIButton.class]) {
+          [header.subviews.lastObject removeFromSuperview];
+        }
+          
+        // UIButton *headerButton = [UIButton buttonWithType:UIButtonTypeContactAdd];
+        UIButton *headerButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+        [headerButton setTitle:_sections[section][@"headerButtonText"] forState:UIControlStateNormal];
+        // [headerButton sizeToFit];
+        headerButton.tag = section;
+        [headerButton addTarget:self action:@selector(headerButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+        [header addSubview:headerButton];
+
+        // Place button on far right margin of header
+        headerButton.translatesAutoresizingMaskIntoConstraints = NO; // use autolayout constraints instead
+        [headerButton.trailingAnchor constraintEqualToAnchor:header.layoutMarginsGuide.trailingAnchor].active = YES;
+        [headerButton.centerYAnchor constraintEqualToAnchor:header.layoutMarginsGuide.centerYAnchor].active = YES;
+    }
+}
+
+- (void)headerButtonClicked:(id)sender {
+
 }
 
 -(void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath
@@ -449,15 +472,15 @@ RCT_NOT_IMPLEMENTED(-initWithCoder:(NSCoder *)aDecoder)
     return count;
 }
 
--(UITableViewCell*)setupReactModuleCell:(UITableView *)tableView data:(NSDictionary*)data indexPath:(NSIndexPath *)indexPath {
+-(UITableViewCell*)setupReactModuleCell:(UITableView *)tableView data:(NSDictionary*)data indexPath:(NSIndexPath *)indexPath reactModuleForCell:(NSString *)reactModuleForCell {
     RCTAssert(_bridge, @"Must set global bridge in AppDelegate, e.g. \n\
               #import <RNTableView/RNAppGlobals.h>\n\
               [[RNAppGlobals sharedInstance] setAppBridge:rootView.bridge]");
     RNReactModuleCell *cell = [tableView dequeueReusableCellWithIdentifier:_reactModuleCellReuseIndentifier];
     if (cell == nil) {
-        cell = [[RNReactModuleCell alloc] initWithStyle:self.tableViewCellStyle reuseIdentifier:_reactModuleCellReuseIndentifier bridge: _bridge data:data indexPath:indexPath reactModule:_reactModuleForCell tableViewTag:self.reactTag];
+        cell = [[RNReactModuleCell alloc] initWithStyle:self.tableViewCellStyle reuseIdentifier:_reactModuleCellReuseIndentifier bridge: _bridge data:data indexPath:indexPath reactModule:reactModuleForCell tableViewTag:self.reactTag];
     } else {
-        [cell setUpAndConfigure:data bridge:_bridge indexPath:indexPath reactModule:_reactModuleForCell tableViewTag:self.reactTag];
+        [cell setUpAndConfigure:data bridge:_bridge indexPath:indexPath reactModule:reactModuleForCell tableViewTag:self.reactTag];
     }
     return cell;
 }
@@ -469,8 +492,10 @@ RCT_NOT_IMPLEMENTED(-initWithCoder:(NSCoder *)aDecoder)
     // check if it is standard cell or user-defined UI
     if ([self hasCustomCells:indexPath.section]){
         cell = ((RNCellView *)_cells[indexPath.section][indexPath.row]).tableViewCell;
+    } else if (item[@"reactModuleForCell"] != nil && ![item[@"reactModuleForCell"] isEqualToString:@""]) {
+        cell = [self setupReactModuleCell:tableView data:item indexPath:indexPath reactModuleForCell:item[@"reactModuleForCell"]];
     } else if (self.reactModuleForCell != nil && ![self.reactModuleForCell isEqualToString:@""]) {
-        cell = [self setupReactModuleCell:tableView data:item indexPath:indexPath];
+        cell = [self setupReactModuleCell:tableView data:item indexPath:indexPath reactModuleForCell:_reactModuleForCell];
     } else {
         cell = [tableView dequeueReusableCellWithIdentifier:@"Cell"];
         if (cell == nil) {
