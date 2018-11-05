@@ -198,6 +198,10 @@ class TableView extends React.Component {
             el.image = resolveAssetSource(el.image)
           }
 
+          if (el.selectedAccessoryImage && typeof el.selectedAccessoryImage === 'number') {
+            el.selectedAccessoryImage = resolveAssetSource(el.selectedAccessoryImage)
+          }
+
           count++
           items.push(el)
 

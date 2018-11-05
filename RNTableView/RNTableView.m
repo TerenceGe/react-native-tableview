@@ -321,9 +321,9 @@ RCT_NOT_IMPLEMENTED(-initWithCoder:(NSCoder *)aDecoder)
           [header.subviews.lastObject removeFromSuperview];
         }
           
-        // UIButton *headerButton = [UIButton buttonWithType:UIButtonTypeContactAdd];
-        UIButton *headerButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-        [headerButton setTitle:_sections[section][@"headerButtonText"] forState:UIControlStateNormal];
+        UIButton *headerButton = [UIButton buttonWithType:UIButtonTypeContactAdd];
+        // UIButton *headerButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+        // [headerButton setTitle:_sections[section][@"headerButtonText"] forState:UIControlStateNormal];
         // [headerButton sizeToFit];
         headerButton.tag = section;
         [headerButton addTarget:self action:@selector(headerButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
@@ -506,10 +506,30 @@ RCT_NOT_IMPLEMENTED(-initWithCoder:(NSCoder *)aDecoder)
     }
     
     if (item[@"selected"] && [item[@"selected"] intValue]){
-        if (item[@"selectedAccessoryType"])
-        {
+        if (item[@"selectedAccessoryType"]) {
             cell.accessoryType = [item[@"selectedAccessoryType"] intValue];
-        } else {
+        } if (item[@"selectedAccessoryImage"]) {
+            UIImage *image;
+            if ([item[@"selectedAccessoryImage"] isKindOfClass:[NSString class]]) {
+                image = [UIImage imageNamed:item[@"selectedAccessoryImage"]];
+            } else {
+                image = [RCTConvert UIImage:item[@"selectedAccessoryImage"]];
+            }
+            if ([item[@"selectedAccessoryImageWidth"] intValue]) {
+                CGSize itemSize = CGSizeMake([item[@"selectedAccessoryImageWidth"] intValue], image.size.height);
+                CGPoint itemPoint = CGPointMake((itemSize.width - image.size.width) / 2, (itemSize.height - image.size.height) / 2);
+                UIGraphicsBeginImageContextWithOptions(itemSize, NO, UIScreen.mainScreen.scale);
+                [image drawAtPoint:itemPoint];
+            }
+                
+            UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+            CGRect frame = CGRectMake(0.0, 0.0, image.size.width, image.size.height);
+            button.frame = frame;
+            [button setBackgroundImage:image forState:UIControlStateNormal];
+                
+            cell.accessoryView = button;
+        }  else {
+            cell.accessoryView = nil;
             cell.accessoryType = UITableViewCellAccessoryCheckmark;
         }
     } else if ([item[@"arrow"] intValue]) {
@@ -521,6 +541,13 @@ RCT_NOT_IMPLEMENTED(-initWithCoder:(NSCoder *)aDecoder)
           [switchView setOn:[item[@"switchOn"] intValue] animated:NO];
           switchView.tag = ((indexPath.section * 10000) + 30000) + (indexPath.item * 10);
           [switchView addTarget:self action:@selector(switchAccessoryChangedForRowWithIndexPath:) forControlEvents:UIControlEventValueChanged];
+        } if ([item[@"accessoryType"] intValue] == 6) {
+          UIView *circleView = [[UIView alloc] initWithFrame:CGRectMake(0,0,20,20)];
+          circleView.layer.cornerRadius = 10;
+          circleView.backgroundColor = [UIColor clearColor];
+          circleView.layer.borderWidth = 1.0f;
+          circleView.layer.borderColor = [UIColor colorWithRed:200/255.0 green:199/255.0 blue:204/255.0 alpha:1.0].CGColor;
+          cell.accessoryView = circleView;
         } else {
           cell.accessoryType = [item[@"accessoryType"] intValue];
         }
