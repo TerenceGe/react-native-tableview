@@ -7,6 +7,8 @@
 //
 
 #import "RNTableView.h"
+#import "RNTableViewCellWithCollectionViewInside.h"
+#import "SnappingCollectionViewLayout.h"
 #import <React/RCTConvert.h>
 #import <React/RCTEventDispatcher.h>
 #import <React/RCTUtils.h>
@@ -16,8 +18,9 @@
 #import "RNTableFooterView.h"
 #import "RNTableHeaderView.h"
 #import "RNReactModuleCell.h"
+#import "RNReactModuleCollectionViewCell.h"
 
-@interface RNTableView()<UITableViewDataSource, UITableViewDelegate> {
+@interface RNTableView()<UITableViewDataSource, UITableViewDelegate, UICollectionViewDelegateFlowLayout> {
     id<RNTableViewDatasource> datasource;
 }
 @property (strong, nonatomic) NSMutableArray *selectedIndexes;
@@ -32,6 +35,7 @@
     NSArray *_items;
     NSMutableArray *_cells;
     NSString *_reactModuleCellReuseIndentifier;
+    NSString *_collectionViewInsideTableViewCell;
     NSMutableDictionary *_lastValue;
 }
 
@@ -225,6 +229,7 @@ RCT_NOT_IMPLEMENTED(-initWithCoder:(NSCoder *)aDecoder)
     _tableView.scrollEnabled = self.scrollEnabled;
     _tableView.editing = self.editing;
     _reactModuleCellReuseIndentifier = @"ReactModuleCell";
+    _collectionViewInsideTableViewCell = @"CollectionViewInsideTableViewCell";
     [_tableView registerClass:[RNReactModuleCell class] forCellReuseIdentifier:_reactModuleCellReuseIndentifier];
     [self addSubview:_tableView];
 }
@@ -321,10 +326,26 @@ RCT_NOT_IMPLEMENTED(-initWithCoder:(NSCoder *)aDecoder)
           [header.subviews.lastObject removeFromSuperview];
         }
           
+        // UIButton *headerButton = [UIButton buttonWithType:UIButtonTypeContactAdd];
+        UIButton *headerButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+        [headerButton setTitle:_sections[section][@"headerButtonText"] forState:UIControlStateNormal];
+        [headerButton.titleLabel setFont:[UIFont systemFontOfSize: 15]];
+        [headerButton sizeToFit];
+        headerButton.tag = section;
+        [headerButton addTarget:self action:@selector(headerButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+        [header addSubview:headerButton];
+
+        // Place button on far right margin of header
+        headerButton.translatesAutoresizingMaskIntoConstraints = NO; // use autolayout constraints instead
+        [headerButton.trailingAnchor constraintEqualToAnchor:header.layoutMarginsGuide.trailingAnchor].active = YES;
+        [headerButton.bottomAnchor constraintEqualToAnchor:header.layoutMarginsGuide.bottomAnchor].active = YES;
+    } else if (_sections[section][@"headerButtonIcon"] && [_sections[section][@"headerButtonIcon"] isKindOfClass:[NSString class]]) {
+        // Remove old button from re-used header
+        if ([header.subviews.lastObject isKindOfClass:UIButton.class]) {
+          [header.subviews.lastObject removeFromSuperview];
+        }
+          
         UIButton *headerButton = [UIButton buttonWithType:UIButtonTypeContactAdd];
-        // UIButton *headerButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-        // [headerButton setTitle:_sections[section][@"headerButtonText"] forState:UIControlStateNormal];
-        // [headerButton sizeToFit];
         headerButton.tag = section;
         [headerButton addTarget:self action:@selector(headerButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
         [header addSubview:headerButton];
@@ -485,6 +506,37 @@ RCT_NOT_IMPLEMENTED(-initWithCoder:(NSCoder *)aDecoder)
     return cell;
 }
 
+-(UITableViewCell*)setupCollectionViewInsideTableViewCell:(UITableView *)tableView data:(NSDictionary*)data indexPath:(NSIndexPath *)indexPath collectionViewInsideTableViewCell:(NSString *)collectionViewInsideTableViewCell {
+    // RCTAssert(_bridge, @"Must set global bridge in AppDelegate, e.g. \n\
+              #import <RNTableView/RNAppGlobals.h>\n\
+              [[RNAppGlobals sharedInstance] setAppBridge:rootView.bridge]");
+    RNTableViewCellWithCollectionViewInside *cell = [tableView dequeueReusableCellWithIdentifier:_collectionViewInsideTableViewCell];
+    if (cell == nil) {
+        cell = [[RNTableViewCellWithCollectionViewInside alloc] initWithStyle:self.tableViewCellStyle reuseIdentifier:_collectionViewInsideTableViewCell];
+        SnappingCollectionViewLayout *layout = [[SnappingCollectionViewLayout alloc] init];
+        layout.minimumLineSpacing = 8;
+        layout.minimumInteritemSpacing = 0;
+        layout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
+        
+        UICollectionView *collectionView = [[UICollectionView alloc] initWithFrame:CGRectZero collectionViewLayout:layout];
+        collectionView.decelerationRate = UIScrollViewDecelerationRateFast;
+        collectionView.showsHorizontalScrollIndicator = NO;
+        [collectionView setDataSource:cell];
+        [collectionView setDelegate:cell];
+        [collectionView registerClass:[RNReactModuleCollectionViewCell class] forCellWithReuseIdentifier:@"ReactModuleCollectionViewCell"];
+        [collectionView setBackgroundColor:[UIColor clearColor]];
+        
+        cell.collectionData = [NSMutableArray arrayWithArray:data[@"collectionViewItems"]];
+        cell.bridge = _bridge;
+        cell.reactTag = self.reactTag;
+        cell.collectionView = collectionView;
+        [collectionView setContentInset:UIEdgeInsetsMake(0.f, 16.f, 0.f, 16.f)];
+        [collectionView setContentOffset:CGPointMake(-16.f, 0)];
+        [cell reloadInputViews];
+    }
+    return cell;
+}
+
 -(UITableViewCell* )tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     UITableViewCell *cell = nil;
     NSDictionary *item = [self dataForRow:indexPath.item section:indexPath.section];
@@ -492,6 +544,8 @@ RCT_NOT_IMPLEMENTED(-initWithCoder:(NSCoder *)aDecoder)
     // check if it is standard cell or user-defined UI
     if ([self hasCustomCells:indexPath.section]){
         cell = ((RNCellView *)_cells[indexPath.section][indexPath.row]).tableViewCell;
+    } else if ([item[@"containCollectionView"] intValue] && item[@"collectionViewItems"] != nil) {
+        cell = [self setupCollectionViewInsideTableViewCell:tableView data:item indexPath:indexPath collectionViewInsideTableViewCell:item[@"collectionViewInsideTableViewCell"]];
     } else if (item[@"reactModuleForCell"] != nil && ![item[@"reactModuleForCell"] isEqualToString:@""]) {
         cell = [self setupReactModuleCell:tableView data:item indexPath:indexPath reactModuleForCell:item[@"reactModuleForCell"]];
     } else if (self.reactModuleForCell != nil && ![self.reactModuleForCell isEqualToString:@""]) {

@@ -35,6 +35,7 @@
 @property(nonatomic) float footerHeight;
 @property(nonatomic) float headerHeight;
 @property(nonatomic) NSString* headerButtonText;
+@property(nonatomic) NSString* headerButtonIcon;
 @property(nonatomic) BOOL customCells;
 @property(nonatomic) BOOL editing;
 @property(nonatomic) BOOL moveWithinSectionOnly;

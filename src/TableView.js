@@ -13,6 +13,7 @@ import TableViewSection from './TableViewSection'
 import TableViewCell from './TableViewCell'
 import TableViewItem from './TableViewItem'
 import RNTableViewConsts from './TableViewConsts'
+import CollectionView from './CollectionView'
 import ViewPropTypes from './util/ViewPropTypes'
 
 const resolveAssetSource = require('react-native/Libraries/Image/resolveAssetSource')
@@ -190,7 +191,22 @@ class TableView extends React.Component {
           extend(el, section.props)
           extend(el, child.props)
 
-          if (el.children) {
+          if (
+            el.containCollectionView 
+            && React.Children.only(child.props.children)
+            // && React.Children.only(child.props.children).type === 'CollectionView'
+          ) {
+            el.collectionViewItems = []
+            let collectionView = React.Children.only(child.props.children)
+
+            React.Children.forEach(collectionView.props.children, (collectionViewItem, collectionViewIndex) => {
+              // if (collectionViewItem.type === 'CollectionViewItem') {
+                const collectionViewItemElement = {}
+                extend(collectionViewItemElement, collectionViewItem.props)
+                el.collectionViewItems.push(collectionViewItemElement)
+              // }
+            })
+          } else if (el.children) {
             el.label = el.children
           }
 
@@ -225,6 +241,7 @@ class TableView extends React.Component {
           footerHeight: section.props.footerHeight,
           headerHeight: section.props.headerHeight,
           headerButtonText: section.props.headerButtonText,
+          headerButtonIcon: section.props.headerButtonIcon,
           items,
           count,
         })
